@@ -1,12 +1,50 @@
-# React + Vite
+# 🎬 STAR-flix
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A Star Wars Explorer built with **React**, styled with custom CSS, powered by the [SWAPI API](https://swapi.py4e.com/).  
+Search, explore, and dive into characters, films, and planets of the Star Wars universe.
 
-Currently, two official plugins are available:
+![STAR-flix Preview](<img width="1493" alt="image" src="https://github.com/user-attachments/assets/8c77ac82-623c-4857-a223-0f9982c1b50e" />
+)
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+---
 
-## Expanding the ESLint configuration
+## 🚀 Features
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+-  **Global Search**: Find movies, characters, or planets instantly
+-  **Categorized Display**: Browse content grouped by film
+-  **Character & Planet Modals**: Detailed popups with film links or inhabitants
+-  **Debounced Search**: Optimized input handling
+-  **Caching**: Avoids repeated API calls
+
+---
+
+## 📦 Tech Stack
+
+- ⚛️ React (via Vite)
+- 🎯 Axios (for API calls)
+- 🧠 Custom `useDebounce` hook
+- 💄 Styled with CSS (no frameworks)
+- 🌐 [SWAPI](https://swapi.py4e.com/)
+
+---
+
+## 🛠️ Setup Instructions
+
+### 1. Clone the repo
+
+```bash
+git clone https://github.com/your-username/starflix.git
+cd starflix
+npm install
+npm run dev
+```
+
+
+project structure:
+src/
+├── components/         # (optional) future UI components
+├── utility/
+│   └── useDebounce.js  # custom debounce hook
+├── App.jsx             # main app logic
+├── App.css             # global styles
+└── main.jsx            # React entry point
