@@ -3,8 +3,7 @@
 A Star Wars Explorer built with **React**, styled with custom CSS, powered by the [SWAPI API](https://swapi.py4e.com/).  
 Search, explore, and dive into characters, films, and planets of the Star Wars universe.
 
-![STAR-flix Preview](<img width="1493" alt="image" src="https://github.com/user-attachments/assets/8c77ac82-623c-4857-a223-0f9982c1b50e" />
-)
+![STAR-flix Preview](<img width="1493" alt="image" src="https://github.com/user-attachments/assets/8c77ac82-623c-4857-a223-0f9982c1b50e" />)
 
 ---
 
