@@ -1,86 +1,94 @@
-import { useEffect, useState } from 'react';
-import axios from 'axios';
-import './App.css';
-
+import { useEffect, useState } from "react";
+import axios from "axios";
+import "./App.css";
 
 function App() {
   const [films, setFilms] = useState([]);
   const [characterCache, setCharacterCache] = useState({});
   const [planetCache, setPlanetCache] = useState({});
   const [selected, setSelected] = useState(null);
-  const [selectedType, setSelectedType] = useState('');
-  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedType, setSelectedType] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [crawlFilm, setCrawlFilm] = useState(null);
 
   useEffect(() => {
-    axios.get('https://swapi.py4e.com/api/films/')
-      .then(async (res) => {
-        const sortedFilms = res.data.results.sort((a, b) => a.episode_id - b.episode_id);
+    axios.get("https://swapi.py4e.com/api/films/").then(async (res) => {
+      const sortedFilms = res.data.results.sort(
+        (a, b) => a.episode_id - b.episode_id
+      );
 
-        const filmsWithDetails = await Promise.all(
-          sortedFilms.map(async (film) => {
-            const characterDetails = await Promise.all(
-              film.characters.slice(0, 5).map(async (url) => {
-                if (characterCache[url]) return characterCache[url];
-                const res = await axios.get(url);
-                characterCache[url] = res.data;
-                return res.data;
-              })
-            );
+      const filmsWithDetails = await Promise.all(
+        sortedFilms.map(async (film) => {
+          const characterDetails = await Promise.all(
+            film.characters.slice(0, 5).map(async (url) => {
+              if (characterCache[url]) return characterCache[url];
+              const res = await axios.get(url);
+              characterCache[url] = res.data;
+              return res.data;
+            })
+          );
 
-            const planetDetails = await Promise.all(
-              film.planets.slice(0, 5).map(async (url) => {
-                if (planetCache[url]) return planetCache[url];
-                const res = await axios.get(url);
-                planetCache[url] = res.data;
-                return res.data;
-              })
-            );
+          const planetDetails = await Promise.all(
+            film.planets.slice(0, 5).map(async (url) => {
+              if (planetCache[url]) return planetCache[url];
+              const res = await axios.get(url);
+              planetCache[url] = res.data;
+              return res.data;
+            })
+          );
 
-            return {
-              ...film,
-              characters: characterDetails,
-              planets: planetDetails,
-            };
-          })
-        );
+          return {
+            ...film,
+            characters: characterDetails,
+            planets: planetDetails,
+          };
+        })
+      );
 
-        setFilms(filmsWithDetails);
-        setCharacterCache({ ...characterCache });
-        setPlanetCache({ ...planetCache });
-      });
+      setFilms(filmsWithDetails);
+      setCharacterCache({ ...characterCache });
+      setPlanetCache({ ...planetCache });
+    });
   }, []);
 
   const lowerSearch = searchTerm.toLowerCase();
 
-  const filteredFilms = films.filter(film =>
+  const filteredFilms = films.filter((film) =>
     film.title.toLowerCase().includes(lowerSearch)
   );
 
-  const filteredCharacters = films.flatMap(film =>
-    film.characters.filter(char =>
-      char.name.toLowerCase().includes(lowerSearch)
-    )
+  const filteredCharacters = Array.from(
+    new Map(
+      films
+        .flatMap((f) => f.characters)
+        .filter((c) => c.name.toLowerCase().includes(searchTerm.toLowerCase()))
+        .map((c) => [c.name, c])
+    ).values()
   );
 
-  const filteredPlanets = films.flatMap(film =>
-    film.planets.filter(planet =>
-      planet.name.toLowerCase().includes(lowerSearch)
-    )
+  const filteredPlanets = Array.from(
+    new Map(
+      films
+        .flatMap((f) => f.planets)
+        .filter((p) => p.name.toLowerCase().includes(searchTerm.toLowerCase()))
+        .map((p) => [p.name, p])
+    ).values()
   );
 
   const isSearching = searchTerm.trim().length > 0;
 
   return (
     <div className="app-container">
-      <h1 className="header">STAR-flix 🎥</h1>
-
-      <input
-        type="text"
-        placeholder="Search for movie, character, or planet..."
-        value={searchTerm}
-        onChange={(e) => setSearchTerm(e.target.value)}
-        className="search-input"
-      />
+      <header className="header">
+        <h1 className="logo">STAR-flix 🎥</h1>
+        <input
+          type="text"
+          placeholder="Search..."
+          className="search-bar"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+        />
+      </header>
 
       {isSearching ? (
         <div>
@@ -105,10 +113,14 @@ function App() {
               <h3>Characters</h3>
               <div className="card-grid">
                 {filteredCharacters.map((char, idx) => (
-                  <div className="card" key={idx} onClick={() => {
-                    setSelected(char);
-                    setSelectedType('character');
-                  }}>
+                  <div
+                    className="card"
+                    key={idx}
+                    onClick={() => {
+                      setSelected(char);
+                      setSelectedType("character");
+                    }}
+                  >
                     <h4>{char.name}</h4>
                     <p>{char.gender}</p>
                   </div>
@@ -122,10 +134,14 @@ function App() {
               <h3>Planets</h3>
               <div className="card-grid">
                 {filteredPlanets.map((planet, idx) => (
-                  <div className="card" key={idx} onClick={() => {
-                    setSelected(planet);
-                    setSelectedType('planet');
-                  }}>
+                  <div
+                    className="card"
+                    key={idx}
+                    onClick={() => {
+                      setSelected(planet);
+                      setSelectedType("planet");
+                    }}
+                  >
                     <h4>{planet.name}</h4>
                     <p>Climate: {planet.climate}</p>
                   </div>
@@ -136,30 +152,46 @@ function App() {
         </div>
       ) : (
         films.map((film, index) => (
-          <div key={index} style={{ marginBottom: '4rem' }}>
-            <h2 style={{ color: '#e50914' }}>{film.title} (Episode {film.episode_id})</h2>
-            <p>{film.opening_crawl}</p>
+          <div key={index} style={{ marginBottom: "4rem" }}>
+            <h2 className="film-title">
+              {film.title}
+              <span
+                className="info-icon"
+                title="Show opening crawl"
+                onClick={() => setCrawlFilm(film)}
+              >
+                ℹ️
+              </span>
+            </h2>
 
             <h3>Characters</h3>
             <div className="card-grid">
               {film.characters.map((char, idx) => (
-                <div key={idx} className="card" onClick={() => {
-                  setSelected(char);
-                  setSelectedType('character');
-                }}>
+                <div
+                  key={idx}
+                  className="card"
+                  onClick={() => {
+                    setSelected(char);
+                    setSelectedType("character");
+                  }}
+                >
                   <h4>{char.name}</h4>
                   <p>{char.gender}</p>
                 </div>
               ))}
             </div>
 
-            <h3 style={{ marginTop: '2rem' }}>Planets</h3>
+            <h3 style={{ marginTop: "2rem" }}>Planets</h3>
             <div className="card-grid">
               {film.planets.map((planet, idx) => (
-                <div key={idx} className="card" onClick={() => {
-                  setSelected(planet);
-                  setSelectedType('planet');
-                }}>
+                <div
+                  key={idx}
+                  className="card"
+                  onClick={() => {
+                    setSelected(planet);
+                    setSelectedType("planet");
+                  }}
+                >
                   <h4>{planet.name}</h4>
                   <p>Climate: {planet.climate}</p>
                 </div>
@@ -169,57 +201,108 @@ function App() {
         ))
       )}
 
-{selected && (
-  <div className="modal" onClick={() => setSelected(null)}>
-    <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-      {selectedType === 'character' ? (
-        <>
-          <h2>{selected.name}</h2>
-          <ul>
-            <li><strong>Gender:</strong> {selected.gender}</li>
-            <li><strong>Birth Year:</strong> {selected.birth_year}</li>
-            <li><strong>Height:</strong> {selected.height} cm</li>
-            <li><strong>Mass:</strong> {selected.mass} kg</li>
-          </ul>
-
-          <h3 style={{ marginTop: '1.5rem' }}>Appeared In ({films.filter(film => film.characters.some(c => c.name === selected.name)).length})</h3>
-          <div className="card-grid">
-            {films
-              .filter(film => film.characters.some(c => c.name === selected.name))
-              .map((film, idx) => (
-                <div key={idx} className="card">
-                  <h4>{film.title}</h4>
+      {selected && (
+        <div className="modal" onClick={() => setSelected(null)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            {selectedType === "character" ? (
+              <>
+                <h2>{selected.name}</h2>
+                <div class="description">
+                  <ul>
+                    <li>
+                      <span>Gender:</span> Male
+                    </li>
+                    <li>
+                      <span>Birth Year:</span> 19BBY
+                    </li>
+                    <li>
+                      <span>Height:</span> 172 cm
+                    </li>
+                    ...
+                  </ul>
                 </div>
-              ))}
-          </div>
-        </>
-      ) : (
-        <>
-          <h2>{selected.name}</h2>
-          <ul>
-            <li><strong>Climate:</strong> {selected.climate}</li>
-            <li><strong>Population:</strong> {selected.population}</li>
-            <li><strong>Terrain:</strong> {selected.terrain}</li>
-          </ul>
 
-          <h3 style={{ marginTop: '1.5rem' }}>Inhabitants ({films.flatMap(f => f.characters).filter(c => c.homeworld === selected.url).length})</h3>
-          <div className="card-grid">
-            {films
-              .flatMap(f => f.characters)
-              .filter(c => c.homeworld === selected.url)
-              .map((char, idx) => (
-                <div key={idx} className="card">
-                  <h4>{char.name}</h4>
+                <h3 style={{ marginTop: "1.5rem" }}>
+                  Appeared In (
+                  {
+                    films.filter((film) =>
+                      film.characters.some((c) => c.name === selected.name)
+                    ).length
+                  }
+                  )
+                </h3>
+                <div className="card-grid">
+                  {films
+                    .filter((film) =>
+                      film.characters.some((c) => c.name === selected.name)
+                    )
+                    .map((film, idx) => (
+                      <div key={idx} className="card">
+                        <h4>{film.title}</h4>
+                      </div>
+                    ))}
                 </div>
-              ))}
+              </>
+            ) : (
+              <>
+                <h2>{selected.name}</h2>
+                <ul>
+                  <li>
+                    <strong>Climate:</strong> {selected.climate}
+                  </li>
+                  <li>
+                    <strong>Population:</strong> {selected.population}
+                  </li>
+                  <li>
+                    <strong>Terrain:</strong> {selected.terrain}
+                  </li>
+                </ul>
+
+                <h3 style={{ marginTop: "1.5rem" }}>
+                  Inhabitants (
+                  {
+                    films
+                      .flatMap((f) => f.characters)
+                      .filter((c) => c.homeworld === selected.url).length
+                  }
+                  )
+                </h3>
+                <div className="card-grid">
+                  {films
+                    .flatMap((f) => f.characters)
+                    .filter((c) => c.homeworld === selected.url)
+                    .map((char, idx) => (
+                      <div key={idx} className="card">
+                        <h4>{char.name}</h4>
+                      </div>
+                    ))}
+                </div>
+              </>
+            )}
+            <button className="close-btn" onClick={() => setSelected(null)}>
+              Close
+            </button>
           </div>
-        </>
+        </div>
       )}
-      <button className="close-btn" onClick={() => setSelected(null)}>Close</button>
-    </div>
-  </div>
-)}
-
+      {crawlFilm && (
+        <div className="modal" onClick={() => setCrawlFilm(null)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <h2 style={{ color: "#ffe81f", marginBottom: "1rem" }}>
+              {crawlFilm.title}
+            </h2>
+            <div
+              className="opening-crawl"
+              style={{ maxHeight: "400px", overflowY: "auto" }}
+            >
+              {crawlFilm.opening_crawl}
+            </div>
+            <button className="close-btn" onClick={() => setCrawlFilm(null)}>
+              Close
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
